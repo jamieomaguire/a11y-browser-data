@@ -58,6 +58,7 @@ export default class A11yTracker {
     this.#recordUserPreferences();
   }
 
+  // This should be called before an instance of the class is destroyed so that the page isn't left with useless event listeners
   stopTracking() {
     this.#mediaQueries.forEach(mediaQuery => {
       mediaQuery.ref.removeEventListener(this.#changeEvent, mediaQuery.handler);
@@ -86,12 +87,12 @@ export default class A11yTracker {
     };
 
     // check initial value
-    recordPrefersContrastSetting(lessContrastMq, moreContrastMq, noPreferenceMq);
+    recordPrefersContrastSetting();
 
     // define checks and change handler (optional)
     if (this.#options.listenForChanges) {
       const prefersContrastChangeHandler = () => {
-        recordPrefersContrastSetting(lessContrastMq, moreContrastMq, noPreferenceMq);
+        recordPrefersContrastSetting();
         this.#userPreferences.prefersContrast.changed = true;
         this.#recordUserPreferences();
       }
@@ -119,18 +120,92 @@ export default class A11yTracker {
 
 
   #trackPrefersReducedMotion() {
-    console.log('tracking perfers reduced motion');
+    console.log('tracking prefers reduced motion');
+
+    // create JS media queries
+    const reducedMq = window.matchMedia(MEDIA_QUERY_REDUCED_MOTION);
+    const noPreferenceMq = window.matchMedia(MEDIA_QUERY_REDUCED_MOTION_NO_PREF);
+
+    // define checks
+    const recordPrefersReducedMotionSetting = () => {
+      if (reducedMq.matches) {
+        this.#userPreferences.prefersReducedMotion.value = reducedMq.media;
+      } else if (noPreferenceMq.matches) {
+        this.#userPreferences.prefersReducedMotion.value = noPreferenceMq.media;
+      }
+    };
+
+    // check initial value
+    recordPrefersReducedMotionSetting();
+
+    // define checks and change handler (optional)
+    if (this.#options.listenForChanges) {
+      const prefersReducedMotionChangeHandler = () => {
+        recordPrefersReducedMotionSetting();
+        this.#userPreferences.prefersReducedMotion.changed = true;
+        this.#recordUserPreferences();
+      }
+
+      reducedMq.addEventListener(this.#changeEvent, prefersReducedMotionChangeHandler);
+      noPreferenceMq.addEventListener(this.#changeEvent, prefersReducedMotionChangeHandler);
+
+      // keep track of media queries and event listners so we can remove them later if needed
+      this.#mediaQueries.push(
+        {
+          ref: reducedMq,
+          handler: prefersReducedMotionChangeHandler
+        },
+        {
+          ref: noPreferenceMq,
+          handler: prefersReducedMotionChangeHandler
+        });
+    }
   }
 
   #trackPrefersColorScheme() {
-    console.log('tracking perfers color scheme');
+    console.log('tracking prefers color scheme');
+
+    // create JS media queries
+    const darkMq = window.matchMedia(MEDIA_QUERY_COLOR_SCHEME_DARK);
+    const lightMq = window.matchMedia(MEDIA_QUERY_COLOR_SCHEME_LIGHT);
+
+    // define checks
+    const recordPrefersColorSchemeSetting = () => {
+      if (darkMq.matches) {
+        this.#userPreferences.prefersColorScheme.value = darkMq.media;
+      } else if (lightMq.matches) {
+        this.#userPreferences.prefersColorScheme.value = lightMq.media;
+      }
+    };
+
+    // check initial value
+    recordPrefersColorSchemeSetting();
+
+    // define checks and change handler (optional)
+    if (this.#options.listenForChanges) {
+      const prefersColorSchemeChangeHandler = () => {
+        recordPrefersColorSchemeSetting();
+        this.#userPreferences.prefersColorScheme.changed = true;
+        this.#recordUserPreferences();
+      }
+
+      darkMq.addEventListener(this.#changeEvent, prefersColorSchemeChangeHandler);
+      lightMq.addEventListener(this.#changeEvent, prefersColorSchemeChangeHandler);
+
+      // keep track of media queries and event listners so we can remove them later if needed
+      this.#mediaQueries.push(
+        {
+          ref: darkMq,
+          handler: prefersColorSchemeChangeHandler
+        },
+        {
+          ref: lightMq,
+          handler: prefersColorSchemeChangeHandler
+        });
+    }
   }
 
   #recordUserPreferences() {
     this.#loggerCallback(JSON.stringify(this.#userPreferences, null, 2));
   }
 }
-
-const a11yTracker = new A11yTracker({
-  prefersContrast: true
-});
