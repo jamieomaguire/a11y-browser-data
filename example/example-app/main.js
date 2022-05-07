@@ -1,6 +1,6 @@
 import './style.css'
 
-import A11yTracker from '../../a11yTracker';
+import A11yTracker from '../../index';
 
 document.querySelector('#app').innerHTML = `
   <h1>Hello Vite!</h1>
