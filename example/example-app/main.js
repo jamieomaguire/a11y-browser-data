@@ -14,5 +14,6 @@ let a11yTracker = new A11yTracker(data => console.log(data), {
 });
 
 a11yTracker.track();
-// a11yTracker.stopTracking();
-// a11yTracker.track();
+a11yTracker.stopTracking();
+a11yTracker.track();
+a11yTracker.stopTracking();
